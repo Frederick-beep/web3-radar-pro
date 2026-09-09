@@ -24,3 +24,5 @@ def get_session_factory():
 async def get_db():
     async with get_session_factory()() as session:
         yield session
+
+SessionLocal = get_session_factory()
