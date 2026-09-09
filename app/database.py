@@ -25,4 +25,8 @@ async def get_db():
     async with get_session_factory()() as session:
         yield session
 
-SessionLocal = get_session_factory()
+
+# Backwards-compatible async session constructor for workers and scripts.
+def SessionLocal():
+    """Return a new AsyncSession using the lazily initialized session factory."""
+    return get_session_factory()()

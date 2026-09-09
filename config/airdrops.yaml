@@ -1,21 +1,3 @@
-# Curated seed format. Replace/add projects with verified official information.
-# Never treat a seed entry as proof of an airdrop or eligibility.
-projects:
-  - slug: bsc-community-demo
-    name: BSC Community Demo
-    chain_id: 56
-    status: upcoming
-    potential_score: 45
-    risk_score: 10
-    risk_level: low
-    official_website: https://example.org
-    source_type: curated
-    notes:
-      description: "Template project for the Airdrop Radar seed pipeline"
-    tasks:
-      - title: Interact with the target protocol
-        task_type: protocol_interaction
-        chain_id: 56
-        required: true
-        weight: 3
-        url: https://example.org
+# Verified-only seed pipeline. Do not add speculative campaigns here.
+# Each project must use official URLs/contracts and a current verification timestamp.
+projects: []

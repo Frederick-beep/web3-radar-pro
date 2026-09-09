@@ -2,16 +2,29 @@ import asyncio,json
 from redis.asyncio import Redis
 from sqlalchemy import select
 from app.database import SessionLocal
-from app.models import DexPool,DexSwap
+from app.models import DexPool,DexSwap,Token
 from app.services.erc20 import decode_pair_created,decode_v2_swap,SWAP_V2_TOPIC
 from app.services.rpc import AsyncRPC
 from app.core.config import settings
 import os,yaml
 with open("config/chains.yaml","r",encoding="utf-8") as f: CFG=yaml.safe_load(f)["chains"]
+WBNB="0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
 async def add_pair(db, chain_id, data, dex, factory):
     old=(await db.execute(select(DexPool).where(DexPool.chain_id==chain_id,DexPool.pair_address==data["pair_address"]))).scalar_one_or_none()
     if old:return
     db.add(DexPool(chain_id=chain_id,factory=factory,dex_name=dex,pair_address=data["pair_address"],token0=data["token0"],token1=data["token1"],created_block=data["block_number"]))
+    # Register the non-native asset immediately so the price/risk workers and UI
+    # have a concrete Token row to enrich. Do not invent symbol/price data here.
+    for token_address in (data["token0"], data["token1"]):
+        token_address = token_address.lower()
+        if token_address == WBNB:
+            continue
+        exists_token = (await db.execute(select(Token).where(Token.chain_id == chain_id, Token.address == token_address))).scalar_one_or_none()
+        if not exists_token:
+            db.add(Token(
+                chain_id=chain_id, address=token_address,
+                first_seen_block=data["block_number"], last_seen_block=data["block_number"]
+            ))
     await db.commit()
 async def scan_swaps(db, redis):
     for c in CFG:

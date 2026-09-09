@@ -6,67 +6,88 @@ services:
       POSTGRES_USER: radar
       POSTGRES_PASSWORD: radar
     healthcheck:
-      test: ["CMD-SHELL","pg_isready -U radar -d radar"]
+      test: ["CMD-SHELL", "pg_isready -U radar -d radar"]
       interval: 5s
       timeout: 3s
       retries: 20
     volumes: ["pgdata:/var/lib/postgresql/data"]
+
   redis:
     image: redis:8-alpine
     healthcheck:
-      test: ["CMD","redis-cli","ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 20
+
   api:
     build: .
     command: sh -c "python scripts/init_db.py && python scripts/seed_airdrops.py && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     env_file: .env
     ports: ["8000:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+      start_period: 10s
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
+
   collector:
     build: .
     command: python -m app.workers.collector
     env_file: .env
     depends_on:
+      api: {condition: service_healthy}
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
+
   intelligence:
     build: .
     command: python -m app.workers.intelligence
     env_file: .env
     depends_on:
+      api: {condition: service_healthy}
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
+
   dex:
     build: .
     command: python -m app.workers.dex
     env_file: .env
     depends_on:
+      api: {condition: service_healthy}
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
+
   price:
     build: .
     command: python -m app.workers.price
     env_file: .env
     depends_on:
+      api: {condition: service_healthy}
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
+
   risk:
     build: .
     command: python -m app.workers.risk
     env_file: .env
     depends_on:
+      api: {condition: service_healthy}
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
+
   airdrop:
     build: .
     command: sh -c "python scripts/seed_airdrops.py && python -m app.workers.airdrop"
     env_file: .env
     depends_on:
+      api: {condition: service_healthy}
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}
+
 volumes:
   pgdata:

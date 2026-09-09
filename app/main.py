@@ -6,7 +6,7 @@ from app.api.routes import router
 from app.api.final_routes import router as final_router
 from app.api.airdrop_routes import router as airdrop_router
 
-APP_VERSION = "5.3.0"
+APP_VERSION = "5.4.0"
 
 app = FastAPI(
     title="Web3 Radar Pro",
