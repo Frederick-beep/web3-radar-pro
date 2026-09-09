@@ -1,0 +1,20 @@
+chains:
+  - id: 1
+    name: Ethereum
+    env: ETH_RPC_URL
+    native: ETH
+    dex_factories:
+      - name: Uniswap V2
+        address: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+  - id: 8453
+    name: Base
+    env: BASE_RPC_URL
+    native: ETH
+    dex_factories: []
+  - id: 56
+    name: BNB Smart Chain
+    env: BSC_RPC_URL
+    native: BNB
+    dex_factories:
+      - name: PancakeSwap V2
+        address: "0xCA143Ce32Fe78f1f7019d7d551a6402fC5350c73"
